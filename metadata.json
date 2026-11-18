@@ -1,0 +1,6 @@
+{
+  "name": "AdsCenter — Tazama Video za Wafanyabiashara",
+  "description": "Tazama video fupi za wafanyabiashara na ulipwe TSh kulingana na muda uliotazama.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
