@@ -50,7 +50,7 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/65 p-3 backdrop-blur-md sm:items-center sm:p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[#061124]/70 p-3 backdrop-blur-md sm:items-center sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="withdraw-modal-title"
@@ -61,16 +61,16 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
             exit={{ opacity: 0, y: 28, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md overflow-hidden rounded-[26px] border border-slate-200 bg-white text-slate-900 shadow-2xl"
+            className="w-full max-w-md overflow-hidden rounded-[26px] border border-[#D5E0F0] bg-white text-[#0A192F] shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-[#E5ECF6] px-5 py-4">
               <h2 id="withdraw-modal-title" className="font-display text-lg font-bold">
                 Toa Pesa
               </h2>
               <button
                 type="button"
                 onClick={onClose}
-                className="grid size-9 place-items-center rounded-full bg-slate-100 text-slate-600 transition active:scale-90 hover:bg-slate-200 hover:text-slate-900"
+                className="grid size-9 place-items-center rounded-full bg-[#EEF3FA] text-slate-600 transition active:scale-90 hover:bg-[#DDE6F4] hover:text-[#0A192F]"
                 aria-label="Funga"
               >
                 <X className="size-4" />
@@ -80,9 +80,9 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
             <div className="p-5">
               {step === 'input' && (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="flex items-center justify-between rounded-2xl border border-[#D5E0F0] bg-[#F4F7FC] px-4 py-3">
                     <span className="text-xs font-medium text-slate-600">Salio ulilonalo</span>
-                    <span className="font-mono text-base font-bold text-emerald-700 tabular-nums">
+                    <span className="font-mono text-base font-bold text-[#155EEF] tabular-nums">
                       {formatTsh(balance)}
                     </span>
                   </div>
@@ -90,11 +90,11 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                   <div>
                     <label
                       htmlFor="withdraw-amount-input"
-                      className="block text-xs font-semibold text-slate-700"
+                      className="block text-xs font-semibold text-[#0A192F]"
                     >
                       Ingiza kiasi unachotaka kutoa (TSh)
                     </label>
-                    <div className="mt-1.5 flex items-center gap-2 rounded-2xl border-2 border-slate-900 bg-white px-4 py-4 transition focus-within:ring-4 focus-within:ring-orange-500/20">
+                    <div className="mt-1.5 flex items-center gap-2 rounded-2xl border-2 border-[#0A1931] bg-white px-4 py-4 transition focus-within:ring-4 focus-within:ring-blue-500/20">
                       <span className="font-display text-xl font-bold text-slate-400">TSh</span>
                       <input
                         id="withdraw-amount-input"
@@ -104,7 +104,7 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                         value={amountInput}
                         onChange={(e) => setAmountInput(e.target.value)}
                         placeholder="0"
-                        className="w-full min-w-0 bg-transparent text-right font-mono text-3xl font-bold tracking-tight text-slate-900 outline-none tabular-nums placeholder:text-slate-300"
+                        className="w-full min-w-0 bg-transparent text-right font-mono text-3xl font-bold tracking-tight text-[#0A192F] outline-none tabular-nums placeholder:text-slate-300"
                         autoFocus
                       />
                     </div>
@@ -117,7 +117,7 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                         key={preset}
                         type="button"
                         onClick={() => setAmountInput(String(preset))}
-                        className="rounded-xl border border-slate-200 bg-slate-50 py-2 font-mono text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 tabular-nums"
+                        className="rounded-xl border border-[#D5E0F0] bg-[#F4F7FC] py-2 font-mono text-xs font-semibold text-[#0A192F] transition hover:border-[#9AB3DA] hover:bg-[#E7EEF9] tabular-nums"
                       >
                         {(preset / 1000).toFixed(0)}k
                       </motion.button>
@@ -125,8 +125,9 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                     <motion.button
                       whileTap={{ scale: 0.94 }}
                       type="button"
-                      onClick={() => setAmountInput(String(balance > 0 ? balance : 15000))}
-                      className="rounded-xl border border-slate-200 bg-slate-50 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                      disabled={balance <= 0}
+                      onClick={() => setAmountInput(String(balance))}
+                      className="rounded-xl border border-[#D5E0F0] bg-[#F4F7FC] py-2 text-xs font-semibold text-[#0A192F] transition hover:border-[#9AB3DA] hover:bg-[#E7EEF9] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       Zote
                     </motion.button>
@@ -136,7 +137,7 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                     whileTap={{ scale: 0.97 }}
                     type="submit"
                     disabled={!canSubmit}
-                    className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-orange-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-45"
+                    className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#155EEF] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1049C5] disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     Toa Pesa Sasa
                   </motion.button>
@@ -149,8 +150,8 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                   animate={{ opacity: 1, scale: 1 }}
                   className="flex flex-col items-center py-8 text-center"
                 >
-                  <Loader2 className="size-12 animate-spin text-orange-600" aria-hidden="true" />
-                  <p className="mt-4 font-display text-lg font-bold text-slate-900">
+                  <Loader2 className="size-12 animate-spin text-[#155EEF]" aria-hidden="true" />
+                  <p className="mt-4 font-display text-lg font-bold text-[#0A192F]">
                     Inachakata malipo yako...
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
@@ -183,7 +184,7 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                     href={REGISTER_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-700"
+                    className="mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#155EEF] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1049C5]"
                   >
                     <span>Fungua Account Sasa</span>
                     <ArrowUpRight className="size-4" aria-hidden="true" />
@@ -193,7 +194,7 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                     whileTap={{ scale: 0.97 }}
                     type="button"
                     onClick={onClose}
-                    className="mt-2.5 flex min-h-11 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    className="mt-2.5 flex min-h-11 w-full items-center justify-center rounded-2xl border border-[#D5E0F0] bg-white px-4 py-2.5 text-sm font-semibold text-[#0A192F] transition hover:bg-[#F4F7FC]"
                   >
                     Rudi Nyuma
                   </motion.button>
@@ -223,7 +224,7 @@ export function WithdrawHistoryModal({ open, records, onClose }: WithdrawHistory
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/65 p-3 backdrop-blur-md sm:items-center sm:p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[#061124]/70 p-3 backdrop-blur-md sm:items-center sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="history-modal-title"
@@ -234,16 +235,16 @@ export function WithdrawHistoryModal({ open, records, onClose }: WithdrawHistory
             exit={{ opacity: 0, y: 28, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[85vh] w-full max-w-md overflow-hidden rounded-[26px] border border-slate-200 bg-white text-slate-900 shadow-2xl"
+            className="max-h-[85vh] w-full max-w-md overflow-hidden rounded-[26px] border border-[#D5E0F0] bg-white text-[#0A192F] shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-[#E5ECF6] px-5 py-4">
               <h2 id="history-modal-title" className="font-display text-lg font-bold">
                 Withdraw History
               </h2>
               <button
                 type="button"
                 onClick={onClose}
-                className="grid size-9 place-items-center rounded-full bg-slate-100 text-slate-600 transition active:scale-90 hover:bg-slate-200 hover:text-slate-900"
+                className="grid size-9 place-items-center rounded-full bg-[#EEF3FA] text-slate-600 transition active:scale-90 hover:bg-[#DDE6F4] hover:text-[#0A192F]"
                 aria-label="Funga"
               >
                 <X className="size-4" />
@@ -253,11 +254,11 @@ export function WithdrawHistoryModal({ open, records, onClose }: WithdrawHistory
             <div className="max-h-[70vh] overflow-y-auto p-5">
               {records.length === 0 ? (
                 <div className="py-10 text-center">
-                  <Receipt className="mx-auto size-10 text-slate-300" aria-hidden="true" />
-                  <p className="mt-3 text-sm font-medium text-slate-600">
+                  <Receipt className="mx-auto size-10 text-[#A7BDD9]" aria-hidden="true" />
+                  <p className="mt-3 text-sm font-medium text-[#0A192F]">
                     Bado hujafanya muamala wowote wa kutoa pesa.
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-500">
                     Tazama video za wafanyabiashara ili kuongeza salio lako.
                   </p>
                 </div>
@@ -266,11 +267,11 @@ export function WithdrawHistoryModal({ open, records, onClose }: WithdrawHistory
                   {records.map((rec) => (
                     <li
                       key={rec.id}
-                      className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                      className="rounded-2xl border border-[#D5E0F0] bg-[#F4F7FC] p-4"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-2 font-display text-sm font-bold text-slate-900">
-                          <Receipt className="size-4 text-slate-500" aria-hidden="true" />
+                        <span className="flex items-center gap-2 font-display text-sm font-bold text-[#0A192F]">
+                          <Receipt className="size-4 text-[#155EEF]" aria-hidden="true" />
                           <span>Risiti ya Muamala</span>
                         </span>
                         {rec.status === 'approved' ? (
@@ -289,13 +290,13 @@ export function WithdrawHistoryModal({ open, records, onClose }: WithdrawHistory
                       <dl className="mt-3 space-y-1.5 text-xs">
                         <div className="flex justify-between">
                           <dt className="text-slate-500">Namba ya muamala</dt>
-                          <dd className="font-mono font-bold text-slate-900 tabular-nums">
+                          <dd className="font-mono font-bold text-[#0A192F] tabular-nums">
                             {rec.id}
                           </dd>
                         </div>
                         <div className="flex justify-between">
                           <dt className="text-slate-500">Kiasi</dt>
-                          <dd className="font-mono font-bold text-slate-900 tabular-nums">
+                          <dd className="font-mono font-bold text-[#0A192F] tabular-nums">
                             {formatTsh(rec.amount)}
                           </dd>
                         </div>
@@ -314,7 +315,7 @@ export function WithdrawHistoryModal({ open, records, onClose }: WithdrawHistory
                       </dl>
 
                       {rec.status !== 'approved' && (
-                        <div className="mt-3 border-t border-slate-200 pt-2.5">
+                        <div className="mt-3 border-t border-[#D5E0F0] pt-2.5">
                           <p className="text-xs leading-relaxed text-slate-600">
                             Malipo yatakamilika baada ya kufungua account na kuweka namba yako ya
                             kupokelea.
@@ -323,7 +324,7 @@ export function WithdrawHistoryModal({ open, records, onClose }: WithdrawHistory
                             href={REGISTER_URL}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-orange-600 hover:underline"
+                            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#155EEF] hover:underline"
                           >
                             <span>Fungua account sasa</span>
                             <ArrowUpRight className="size-3.5" aria-hidden="true" />

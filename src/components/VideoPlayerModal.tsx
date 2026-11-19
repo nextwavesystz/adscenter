@@ -221,20 +221,20 @@ export function VideoPlayerModal({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
           transition={{ type: 'spring', stiffness: 360, damping: 32, mass: 0.85 }}
-          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/94 text-white backdrop-blur-xl"
+          className="fixed inset-0 z-50 overflow-y-auto bg-[#061124]/95 text-white backdrop-blur-xl"
           role="dialog"
           aria-modal="true"
           aria-label={`Tazama video: ${video.title}`}
         >
           <div className="mx-auto flex min-h-full max-w-4xl flex-col px-4 py-4 sm:px-6 sm:py-6">
             {/* Theater Header */}
-            <div className="flex items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div className="flex items-center justify-between gap-4 border-b border-[#1A335C] pb-4">
               <div className="flex min-w-0 items-center gap-3">
                 <motion.button
                   whileTap={{ scale: 0.92 }}
                   type="button"
                   onClick={onClose}
-                  className="grid size-10 shrink-0 place-items-center rounded-2xl border border-slate-800 bg-slate-900 text-slate-200 transition hover:bg-slate-800 hover:text-white"
+                  className="grid size-10 shrink-0 place-items-center rounded-2xl border border-[#1E3B70] bg-[#0B1F42] text-blue-100 transition hover:bg-[#132E5E] hover:text-white"
                   aria-label="Rudi kwenye dashboard"
                 >
                   <ArrowLeft className="size-5" />
@@ -243,7 +243,7 @@ export function VideoPlayerModal({
                   <p className="truncate font-display text-base font-bold text-white sm:text-lg">
                     {video.title}
                   </p>
-                  <p className="truncate text-xs text-slate-400">
+                  <p className="truncate text-xs text-blue-200/75">
                     {video.category} · #{String(video.id).padStart(2, '0')} ·{' '}
                     {formatSeconds(video.durationSeconds)}
                   </p>
@@ -251,15 +251,15 @@ export function VideoPlayerModal({
               </div>
 
               <div className="shrink-0 text-right">
-                <p className="text-[11px] font-medium text-slate-400">Malipo</p>
-                <p className="font-mono text-base font-bold text-emerald-400 tabular-nums">
+                <p className="text-[11px] font-medium text-blue-200/75">Malipo</p>
+                <p className="font-mono text-base font-bold text-sky-300 tabular-nums">
                   {formatTsh(video.rewardTsh)}
                 </p>
               </div>
             </div>
 
             {/* Real Video Player Stage */}
-            <div className="mt-5 overflow-hidden rounded-[24px] border border-slate-800 bg-black shadow-2xl">
+            <div className="mt-5 overflow-hidden rounded-[24px] border border-[#1E3B70] bg-black shadow-2xl">
               <div className="relative aspect-video w-full bg-black">
                 {!videoFailed ? (
                   <video
@@ -305,7 +305,7 @@ export function VideoPlayerModal({
                     whileTap={{ scale: 0.94 }}
                     type="button"
                     onClick={handleUnmute}
-                    className="absolute bottom-14 right-3 z-10 flex items-center gap-2 rounded-full bg-slate-950/85 px-4 py-2 text-xs font-bold text-white shadow-lg ring-1 ring-white/20 backdrop-blur-md transition hover:bg-slate-900"
+                    className="absolute bottom-14 right-3 z-10 flex items-center gap-2 rounded-full bg-[#0A1931]/90 px-4 py-2 text-xs font-bold text-white shadow-lg ring-1 ring-sky-400/30 backdrop-blur-md transition hover:bg-[#13294E]"
                   >
                     <VolumeX className="size-4" aria-hidden="true" />
                     <span>Washa sauti</span>
@@ -317,9 +317,9 @@ export function VideoPlayerModal({
                     type="button"
                     onClick={handleManualPlay}
                     aria-label="Cheza video"
-                    className="absolute inset-0 z-10 grid place-items-center bg-slate-950/60"
+                    className="absolute inset-0 z-10 grid place-items-center bg-[#061124]/65"
                   >
-                    <span className="grid size-20 place-items-center rounded-full bg-orange-600 text-white shadow-2xl transition active:scale-95 hover:scale-105">
+                    <span className="grid size-20 place-items-center rounded-full bg-[#155EEF] text-white shadow-2xl transition active:scale-95 hover:scale-105">
                       <Play className="size-9 fill-current" aria-hidden="true" />
                     </span>
                   </button>
@@ -330,7 +330,7 @@ export function VideoPlayerModal({
                     whileTap={{ scale: 0.94 }}
                     type="button"
                     onClick={() => onBuyClick(video)}
-                    className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2 font-display text-sm font-extrabold uppercase text-slate-950 shadow-xl transition hover:bg-emerald-400"
+                    className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-2 rounded-xl bg-sky-400 px-5 py-2 font-display text-sm font-extrabold uppercase text-[#061124] shadow-xl transition hover:bg-sky-300"
                   >
                     <ShoppingBag className="size-4" aria-hidden="true" />
                     <span className="whitespace-nowrap">Nunua / Buy</span>
@@ -338,9 +338,9 @@ export function VideoPlayerModal({
                 )}
               </div>
 
-              <div className="h-1.5 w-full bg-slate-800">
+              <div className="h-1.5 w-full bg-[#11264D]">
                 <div
-                  className="h-full bg-emerald-400 transition-[width] duration-200"
+                  className="h-full bg-sky-400 transition-[width] duration-200"
                   style={{ width: `${phase === 'completed' ? 100 : progressPct}%` }}
                 />
               </div>
@@ -348,28 +348,28 @@ export function VideoPlayerModal({
 
             {/* Reward Verification & Status Panel */}
             <div
-              className="mt-4 rounded-[22px] border border-slate-800 bg-slate-900 p-5"
+              className="mt-4 rounded-[22px] border border-[#1E3B70] bg-[#0B1F42] p-5"
               aria-live="polite"
             >
               {phase === 'watching' && (
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3">
-                    <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-slate-800 text-amber-400">
+                    <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[#132E5E] text-sky-300">
                       <Clock3 className="size-5" aria-hidden="true" />
                     </div>
                     <div>
                       <p className="font-display text-base font-bold text-white">
                         Endelea kutazama ili kupata {formatTsh(video.rewardTsh)}
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-blue-200/75">
                         Malipo yataingizwa kwenye Balance yako mara tu video ikikamilika.
                       </p>
                     </div>
                   </div>
 
-                  <div className="shrink-0 rounded-2xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-center">
-                    <span className="block text-[11px] text-slate-400">Muda uliobaki</span>
-                    <span className="font-mono text-lg font-bold text-emerald-400 tabular-nums">
+                  <div className="shrink-0 rounded-2xl border border-[#244682] bg-[#061124] px-4 py-2.5 text-center">
+                    <span className="block text-[11px] text-blue-200/75">Muda uliobaki</span>
+                    <span className="font-mono text-lg font-bold text-sky-300 tabular-nums">
                       {formatSeconds(remainingSeconds)}
                     </span>
                   </div>
@@ -383,14 +383,14 @@ export function VideoPlayerModal({
                   className="flex items-center gap-3 py-1"
                 >
                   <Loader2
-                    className="size-6 shrink-0 animate-spin text-emerald-400"
+                    className="size-6 shrink-0 animate-spin text-sky-300"
                     aria-hidden="true"
                   />
                   <div>
                     <p className="font-display text-base font-bold text-white">
                       Inathibitisha malipo yako...
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-blue-200/75">
                       Tafadhali subiri sekunde chache, {formatTsh(video.rewardTsh)} inaingizwa
                       kwenye akaunti yako.
                     </p>
@@ -405,7 +405,7 @@ export function VideoPlayerModal({
                   transition={{ type: 'spring', stiffness: 360, damping: 28 }}
                   className="space-y-4"
                 >
-                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/15 p-4">
+                  <div className="rounded-2xl border border-emerald-400/35 bg-emerald-500/15 p-4">
                     <div className="flex items-center gap-3">
                       <BadgeCheck className="size-8 shrink-0 text-emerald-400" aria-hidden="true" />
                       <div>
@@ -426,7 +426,7 @@ export function VideoPlayerModal({
                       href={REGISTER_URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-orange-700"
+                      className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#155EEF] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1049C5]"
                     >
                       <span>Fungua Account Sasa</span>
                       <ArrowUpRight className="size-4" aria-hidden="true" />
@@ -436,7 +436,7 @@ export function VideoPlayerModal({
                       whileTap={{ scale: 0.97 }}
                       type="button"
                       onClick={() => onNextVideo(video.id)}
-                      className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+                      className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-[#244682] bg-[#132E5E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#193B77]"
                     >
                       <span>Tazama Video Inayofuata</span>
                       <ArrowRight className="size-4" aria-hidden="true" />

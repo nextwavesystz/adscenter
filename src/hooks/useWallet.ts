@@ -14,35 +14,32 @@ interface WalletState {
   withdrawHistory: WithdrawRecord[];
 }
 
-const STORAGE_KEY = 'adscenter_wallet_v1';
-const SEEDED_KEY = 'adscenter_wallet_seeded_v1';
+const STORAGE_KEY = 'adscenter_wallet_v2';
 
-const INITIAL_SEEDED_STATE: WalletState = {
-  profit: 192000,
-  balance: 52000,
+const INITIAL_STATE: WalletState = {
+  profit: 0,
+  balance: 0,
   watchedIds: [],
   withdrawHistory: [],
 };
 
 function loadWallet(): WalletState {
-  if (typeof window === 'undefined') return INITIAL_SEEDED_STATE;
+  if (typeof window === 'undefined') return INITIAL_STATE;
   try {
-    const alreadySeeded = window.localStorage.getItem(SEEDED_KEY) === '1';
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!alreadySeeded || !raw) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEEDED_STATE));
-      window.localStorage.setItem(SEEDED_KEY, '1');
-      return INITIAL_SEEDED_STATE;
+    if (!raw) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_STATE));
+      return INITIAL_STATE;
     }
     const parsed = JSON.parse(raw) as Partial<WalletState>;
     return {
-      profit: typeof parsed.profit === 'number' ? parsed.profit : INITIAL_SEEDED_STATE.profit,
-      balance: typeof parsed.balance === 'number' ? parsed.balance : INITIAL_SEEDED_STATE.balance,
+      profit: typeof parsed.profit === 'number' && parsed.profit >= 0 ? parsed.profit : 0,
+      balance: typeof parsed.balance === 'number' && parsed.balance >= 0 ? parsed.balance : 0,
       watchedIds: Array.isArray(parsed.watchedIds) ? parsed.watchedIds : [],
       withdrawHistory: Array.isArray(parsed.withdrawHistory) ? parsed.withdrawHistory : [],
     };
   } catch {
-    return INITIAL_SEEDED_STATE;
+    return INITIAL_STATE;
   }
 }
 

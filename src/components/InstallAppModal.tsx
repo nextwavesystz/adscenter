@@ -63,7 +63,7 @@ export function InstallAppModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/65 p-3 backdrop-blur-md sm:items-center sm:p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[#061124]/70 p-3 backdrop-blur-md sm:items-center sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="install-modal-title"
@@ -74,24 +74,24 @@ export function InstallAppModal({
             exit={{ opacity: 0, y: 28, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm rounded-[26px] border border-slate-200 bg-white p-6 text-center text-slate-900 shadow-2xl"
+            className="relative w-full max-w-sm rounded-[26px] border border-[#D5E0F0] bg-white p-6 text-center text-[#0A192F] shadow-2xl"
           >
             <button
               type="button"
               onClick={onClose}
-              className="absolute right-3.5 top-3.5 grid size-9 place-items-center rounded-full bg-slate-100 text-slate-600 transition active:scale-90 hover:bg-slate-200 hover:text-slate-900"
+              className="absolute right-3.5 top-3.5 grid size-9 place-items-center rounded-full bg-[#EEF3FA] text-slate-600 transition active:scale-90 hover:bg-[#DDE6F4] hover:text-[#0A192F]"
               aria-label="Funga"
             >
               <X className="size-4" />
             </button>
 
-            <div className="mx-auto grid size-16 place-items-center rounded-[20px] bg-[#0B1220] text-emerald-400 shadow-lg">
+            <div className="mx-auto grid size-16 place-items-center rounded-[20px] bg-[#0A1931] text-sky-400 shadow-lg shadow-blue-950/25">
               <Smartphone className="size-8" aria-hidden="true" />
             </div>
 
             <h2
               id="install-modal-title"
-              className="mt-4 font-display text-xl font-bold text-slate-900"
+              className="mt-4 font-display text-xl font-bold text-[#0A192F]"
             >
               Download App ya AdsCenter
             </h2>
@@ -101,8 +101,8 @@ export function InstallAppModal({
             </p>
 
             {isIOS && !isInstalled && (
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-left text-xs text-slate-700">
-                <p className="font-bold text-slate-900">Maelekezo ya iPhone / iPad (Safari):</p>
+              <div className="mt-4 rounded-2xl border border-[#D5E0F0] bg-[#F4F7FC] p-3.5 text-left text-xs text-slate-700">
+                <p className="font-bold text-[#0A192F]">Maelekezo ya iPhone / iPad (Safari):</p>
                 <ol className="mt-1.5 list-decimal space-y-1 pl-4">
                   <li>
                     Bonyeza alama ya <span className="inline-flex items-center gap-0.5 font-semibold"><Share className="size-3" /> Share</span> chini kwenye Safari.
@@ -122,7 +122,7 @@ export function InstallAppModal({
             )}
 
             {statusMessage && !isInstalled && (
-              <p className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-700">
+              <p className="mt-4 rounded-2xl border border-[#D5E0F0] bg-[#F4F7FC] p-3 text-xs leading-relaxed text-slate-700">
                 {statusMessage}
               </p>
             )}
@@ -134,7 +134,7 @@ export function InstallAppModal({
                   type="button"
                   disabled={installing}
                   onClick={handleInstallClick}
-                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
+                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#155EEF] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1049C5] disabled:opacity-60"
                 >
                   <Download className="size-4" aria-hidden="true" />
                   <span>
@@ -150,7 +150,7 @@ export function InstallAppModal({
                 whileTap={{ scale: 0.97 }}
                 type="button"
                 onClick={onClose}
-                className="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                className="min-h-11 w-full rounded-2xl border border-[#D5E0F0] bg-white px-4 py-2.5 text-sm font-semibold text-[#0A192F] transition hover:bg-[#F4F7FC]"
               >
                 Funga
               </motion.button>

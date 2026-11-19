@@ -28,8 +28,8 @@ export default defineConfig(() => {
           short_name: 'AdsCenter',
           description:
             'Tazama video fupi za wafanyabiashara wa Tanzania na ulipwe TSh kulingana na muda uliotazama.',
-          theme_color: '#0B1220',
-          background_color: '#0B1220',
+          theme_color: '#0A1931',
+          background_color: '#0A1931',
           display: 'standalone',
           start_url: '/',
           scope: '/',

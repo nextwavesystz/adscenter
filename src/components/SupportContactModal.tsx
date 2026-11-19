@@ -45,7 +45,7 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
           onClick={onClose}
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/65 p-3 backdrop-blur-md sm:items-center sm:p-4"
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-[#061124]/70 p-3 backdrop-blur-md sm:items-center sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="support-modal-title"
@@ -56,11 +56,11 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
             exit={{ opacity: 0, y: 28, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 380, damping: 32, mass: 0.85 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md overflow-hidden rounded-[26px] border border-slate-200 bg-white text-slate-900 shadow-2xl"
+            className="w-full max-w-md overflow-hidden rounded-[26px] border border-[#D5E0F0] bg-white text-[#0A192F] shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-[#E5ECF6] px-5 py-4">
               <div>
-                <h2 id="support-modal-title" className="font-display text-lg font-bold text-slate-900">
+                <h2 id="support-modal-title" className="font-display text-lg font-bold text-[#0A192F]">
                   {productTitle ? 'Wasiliana na Muuzaji' : 'Huduma kwa Wateja'}
                 </h2>
                 <p className="text-xs text-slate-500">
@@ -70,7 +70,7 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
               <button
                 type="button"
                 onClick={onClose}
-                className="grid size-9 place-items-center rounded-full bg-slate-100 text-slate-600 transition active:scale-90 hover:bg-slate-200 hover:text-slate-900"
+                className="grid size-9 place-items-center rounded-full bg-[#EEF3FA] text-slate-600 transition active:scale-90 hover:bg-[#DDE6F4] hover:text-[#0A192F]"
                 aria-label="Funga"
               >
                 <X className="size-4" />
@@ -88,25 +88,25 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
                     whileTap={{ scale: 0.97 }}
                     type="button"
                     onClick={() => setWhatsappRejected(true)}
-                    className="flex min-h-12 w-full items-center justify-between rounded-2xl bg-emerald-600 px-4 py-3 text-left font-semibold text-white transition hover:bg-emerald-700"
+                    className="flex min-h-12 w-full items-center justify-between rounded-2xl bg-[#155EEF] px-4 py-3 text-left font-semibold text-white transition hover:bg-[#1049C5]"
                   >
                     <span className="flex items-center gap-3">
                       <MessageCircle className="size-5 shrink-0" aria-hidden="true" />
                       <span>Wasiliana kwa WhatsApp</span>
                     </span>
-                    <span className="text-xs font-medium text-emerald-100">Fungua</span>
+                    <span className="text-xs font-medium text-blue-100">Fungua</span>
                   </motion.button>
 
                   <motion.a
                     whileTap={{ scale: 0.97 }}
                     href={buildSmsHref(smsText)}
-                    className="flex min-h-12 w-full items-center justify-between rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
+                    className="flex min-h-12 w-full items-center justify-between rounded-2xl bg-[#0A1931] px-4 py-3 font-semibold text-white transition hover:bg-[#122952]"
                   >
                     <span className="flex items-center gap-3">
                       <MessageSquareText className="size-5 shrink-0" aria-hidden="true" />
                       <span>Tuma SMS ya Kawaida</span>
                     </span>
-                    <span className="font-mono text-xs text-slate-300 tabular-nums">
+                    <span className="font-mono text-xs text-blue-200 tabular-nums">
                       {SUPPORT_PHONE_DISPLAY}
                     </span>
                   </motion.a>
@@ -146,7 +146,7 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
                   <div>
                     <label
                       htmlFor="sms-message-input"
-                      className="block text-xs font-semibold text-slate-700"
+                      className="block text-xs font-semibold text-[#0A192F]"
                     >
                       Andika ujumbe wako wa kawaida (SMS):
                     </label>
@@ -155,7 +155,7 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
                       rows={3}
                       value={smsText}
                       onChange={(e) => setSmsText(e.target.value)}
-                      className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:bg-white"
+                      className="mt-1.5 w-full rounded-2xl border border-[#D5E0F0] bg-[#F4F7FC] px-3.5 py-2.5 text-sm text-[#0A192F] outline-none transition focus:border-[#155EEF] focus:bg-white"
                     />
                   </div>
 
@@ -163,7 +163,7 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
                     <motion.a
                       whileTap={{ scale: 0.97 }}
                       href={buildSmsHref(smsText)}
-                      className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-700"
+                      className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#155EEF] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1049C5]"
                     >
                       <Send className="size-4 shrink-0" aria-hidden="true" />
                       <span className="whitespace-nowrap">
@@ -175,7 +175,7 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
                       whileTap={{ scale: 0.97 }}
                       type="button"
                       onClick={handleCopyPhone}
-                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-800 transition hover:bg-slate-200"
+                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#D5E0F0] bg-[#EEF3FA] px-4 py-2.5 text-xs font-semibold text-[#0A192F] transition hover:bg-[#DDE6F4]"
                     >
                       {copied ? (
                         <>
@@ -184,7 +184,7 @@ export function SupportContactModal({ open, onClose, productTitle }: SupportCont
                         </>
                       ) : (
                         <>
-                          <Copy className="size-4 text-slate-600" aria-hidden="true" />
+                          <Copy className="size-4 text-[#155EEF]" aria-hidden="true" />
                           <span>Nakili namba ya SMS ({SUPPORT_PHONE_DISPLAY})</span>
                         </>
                       )}
