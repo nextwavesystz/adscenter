@@ -3,61 +3,130 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { playNotificationChime, unlockAudio } from '../utils/sound';
 
-const NAMES = [
-  'Juma Mwakalindile',
-  'Neema Msigwa',
-  'Baraka Mwenda',
-  'Asha Ramadhani',
-  'Said Mkumbwa',
-  'Grace Mushi',
-  'Rajabu Kimaro',
-  'Zawadi Mapunda',
-  'Frank Massawe',
-  'Halima Juma',
-  'Emmanuel Shayo',
-  'Rehema Chacha',
-  'Kelvin Mbwambo',
-  'Mariam Ally',
-  'Hamisi Bakari',
-  'Salma Athumani',
-  'Ibrahimu Mwasambili',
-  'Joyce Kileo',
-  'Mohamed Nassoro',
-  'Upendo Shirima',
-  'Daniel Ndomba',
-  'Zuhura Omari',
-  'Godfrey Lyimo',
-  'Farida Selemani',
-  'Paschal Nyoni',
-  'Mwajuma Shabani',
-  'Elias Mwakalinga',
-  'Nasra Abdallah',
-  'Jackson Mhando',
-  'Beatrice Tarimo',
-  'Yusuph Hassani',
-  'Amina Mwinuka',
-  'Erick Mfugale',
-  'Pendo Mwasote',
-  'Ramadhani Kessy',
-  'Fatuma Salum',
-  'Josephat Komba',
-  'Rukia Issa',
-  'Dickson Magesa',
-  'Mwanahawa Rashid',
-  'Deogratius Mkude',
-  'Subira Mgaya',
-  'Omary Maulid',
-  'Janeth Mosha',
-  'Benedict Nkwabi',
-  'Hawa Mfinanga',
-  'Shabani Ngowi',
-  'Agnes Lema',
-  'Hassan Mnyagatwa',
-  'Zaituni Kondo',
-  'Meshack Mwandambo',
-  'Irene Mushi',
-  'Abdulrahman Msuya',
-  'Happiness Mgonja',
+const FIRST_NAMES = [
+  'Rehema',
+  'Juma',
+  'Abdallah',
+  'Sara',
+  'Salome',
+  'Amina',
+  'John',
+  'David',
+  'Sadiki',
+  'Rosemary',
+  'Mariam',
+  'Hassan',
+  'Jumanne',
+  'Kuria',
+  'Julie',
+  'Neema',
+  'Baraka',
+  'Asha',
+  'Grace',
+  'Rajabu',
+  'Halima',
+  'Emmanuel',
+  'Kelvin',
+  'Hamisi',
+  'Salma',
+  'Ibrahimu',
+  'Joyce',
+  'Mohamed',
+  'Upendo',
+  'Daniel',
+  'Zuhura',
+  'Godfrey',
+  'Farida',
+  'Paschal',
+  'Mwajuma',
+  'Elias',
+  'Nasra',
+  'Jackson',
+  'Beatrice',
+  'Yusuph',
+  'Erick',
+  'Pendo',
+  'Ramadhani',
+  'Fatuma',
+  'Josephat',
+  'Rukia',
+  'Dickson',
+  'Subira',
+  'Omary',
+  'Janeth',
+  'Benedict',
+  'Agnes',
+  'Irene',
+  'Steven',
+  'Sophia',
+  'Esther',
+  'Joseph',
+  'Zainabu',
+  'Bakari',
+  'Victor',
+];
+
+const SURNAMES = [
+  'Mushi',
+  'Massawe',
+  'Kimaro',
+  'Mwakalindile',
+  'Msigwa',
+  'Mwenda',
+  'Mkumbwa',
+  'Mapunda',
+  'Shayo',
+  'Chacha',
+  'Mbwambo',
+  'Ally',
+  'Nassoro',
+  'Shirima',
+  'Ndomba',
+  'Omari',
+  'Lyimo',
+  'Selemani',
+  'Nyoni',
+  'Shabani',
+  'Mwakalinga',
+  'Mhando',
+  'Tarimo',
+  'Mwinuka',
+  'Mfugale',
+  'Mwasote',
+  'Kessy',
+  'Salum',
+  'Komba',
+  'Issa',
+  'Magesa',
+  'Rashid',
+  'Mkude',
+  'Mgaya',
+  'Maulid',
+  'Mosha',
+  'Nkwabi',
+  'Mfinanga',
+  'Ngowi',
+  'Lema',
+  'Kondo',
+  'Mwandambo',
+  'Temba',
+  'Msuya',
+  'Mgonja',
+  'Kiwelu',
+  'Makame',
+  'Nanyaro',
+  'Ndunguru',
+  'Pallangyo',
+  'Mwambene',
+  'Kileo',
+  'Mariki',
+  'Swai',
+  'Kaaya',
+  'Mrema',
+  'Mbise',
+  'Kitomari',
+  'Mnzava',
+  'Mchomvu',
 ];
 
 const PLACES = [
@@ -83,13 +152,10 @@ const PLACES = [
   'Babati',
 ];
 
-const ALL_AMOUNTS = [
-  10000, 18000, 25000, 38000, 50000, 58000, 75000, 95000,
-  120000, 165000, 200000, 270000, 300000, 360000, 400000, 450000,
-  500000, 580000, 650000, 700000, 780000, 850000, 920000, 1000000,
-];
-
+type AmountBracket = 'low' | 'mid' | 'upper' | 'high';
+const BRACKETS: readonly AmountBracket[] = ['low', 'mid', 'upper', 'high'];
 const PREFIXES = ['786', '712', '755', '763', '678', '745', '718', '765', '754', '655', '784'];
+const SEEN_PAIRS_KEY = 'adscenter_toast_seen_pairs_v2';
 
 interface PayoutNotice {
   key: number;
@@ -121,17 +187,64 @@ function drawFromDeck<T>(deckRef: { current: T[] }, source: readonly T[], lastVa
   return deckRef.current.shift() as T;
 }
 
+function loadSeenPairs(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = window.sessionStorage.getItem(SEEN_PAIRS_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? new Set(parsed.filter((s): s is string => typeof s === 'string'))
+      : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSeenPairs(seen: Set<string>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(SEEN_PAIRS_KEY, JSON.stringify([...seen].slice(-250)));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function generateDynamicAmount(bracket: AmountBracket, recentAmounts: number[]): number {
+  const randomHundred = (min: number, max: number) => {
+    // Occasional clean thousand (~15%), mostly natural hundreds like 196,700 or 58,400
+    const step = Math.random() < 0.15 ? 1000 : 100;
+    const count = Math.floor((max - min) / step) + 1;
+    return min + Math.floor(Math.random() * count) * step;
+  };
+
+  for (let attempt = 0; attempt < 15; attempt += 1) {
+    let candidate = 54300;
+    if (bracket === 'low') {
+      candidate = randomHundred(10200, 79800);
+    } else if (bracket === 'mid') {
+      candidate = randomHundred(82400, 298900);
+    } else if (bracket === 'upper') {
+      candidate = randomHundred(304200, 658700);
+    } else {
+      candidate = Math.random() < 0.12 ? 1000000 : randomHundred(665400, 994800);
+    }
+
+    if (!recentAmounts.includes(candidate)) {
+      return candidate;
+    }
+  }
+
+  return 196700;
+}
+
 function formatTzs(amount: number): string {
   return `${amount.toLocaleString('en-US')} TZS`;
 }
 
 function VerifiedBlueTick() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="size-8 shrink-0 drop-shadow-sm"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" className="size-8 shrink-0 drop-shadow-sm" aria-hidden="true">
       <path
         fill="#1D9BF0"
         d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z"
@@ -150,12 +263,16 @@ interface PayoutToastProps {
 
 export function PayoutToast({ enabled = true }: PayoutToastProps) {
   const [notice, setNotice] = useState<PayoutNotice | null>(null);
-  const nameDeckRef = useRef<string[]>([]);
+  const firstDeckRef = useRef<string[]>([]);
+  const surnameDeckRef = useRef<string[]>([]);
   const placeDeckRef = useRef<string[]>([]);
-  const amountDeckRef = useRef<number[]>([]);
-  const lastNameRef = useRef<string | undefined>(undefined);
+  const bracketDeckRef = useRef<AmountBracket[]>([]);
+  const lastFirstRef = useRef<string | undefined>(undefined);
+  const lastSurnameRef = useRef<string | undefined>(undefined);
   const lastPlaceRef = useRef<string | undefined>(undefined);
-  const lastAmountRef = useRef<number | undefined>(undefined);
+  const lastBracketRef = useRef<AmountBracket | undefined>(undefined);
+  const recentAmountsRef = useRef<number[]>([]);
+  const seenPairsRef = useRef<Set<string> | null>(null);
 
   useEffect(() => {
     const handleUnlock = () => unlockAudio();
@@ -170,35 +287,55 @@ export function PayoutToast({ enabled = true }: PayoutToastProps) {
       };
     }
 
+    if (!seenPairsRef.current) {
+      seenPairsRef.current = loadSeenPairs();
+    }
+
     let cancelled = false;
     let nextTimer: number | undefined;
     let hideTimer: number | undefined;
 
     const createMixedNotice = (): PayoutNotice => {
-      const name = drawFromDeck(nameDeckRef, NAMES, lastNameRef.current);
-      lastNameRef.current = name;
+      const seen = seenPairsRef.current ?? new Set<string>();
+      let fullName = '';
+
+      for (let i = 0; i < 15; i += 1) {
+        const first = drawFromDeck(firstDeckRef, FIRST_NAMES, lastFirstRef.current);
+        let surname = drawFromDeck(surnameDeckRef, SURNAMES, lastSurnameRef.current);
+        if (first.toLowerCase() === surname.toLowerCase()) {
+          surname = drawFromDeck(surnameDeckRef, SURNAMES, surname);
+        }
+        const candidate = `${first} ${surname}`;
+        lastFirstRef.current = first;
+        lastSurnameRef.current = surname;
+        if (!seen.has(candidate)) {
+          fullName = candidate;
+          break;
+        }
+        fullName = candidate;
+      }
+
+      seen.add(fullName);
+      saveSeenPairs(seen);
 
       const place = drawFromDeck(placeDeckRef, PLACES, lastPlaceRef.current);
       lastPlaceRef.current = place;
 
-      let amount = drawFromDeck(amountDeckRef, ALL_AMOUNTS, lastAmountRef.current);
-      // Avoid consecutive low-only streaks by ensuring a follow-up pulls >= 100,000 TZS
-      if (lastAmountRef.current !== undefined && lastAmountRef.current < 100000 && amount < 100000) {
-        const higherIdx = amountDeckRef.current.findIndex((a) => a >= 100000);
-        if (higherIdx !== -1) {
-          const swapped = amountDeckRef.current[higherIdx];
-          amountDeckRef.current[higherIdx] = amount;
-          amount = swapped;
-        }
+      let bracket = drawFromDeck(bracketDeckRef, BRACKETS, lastBracketRef.current);
+      if (lastBracketRef.current === 'low' && bracket === 'low') {
+        bracket = 'high';
       }
-      lastAmountRef.current = amount;
+      lastBracketRef.current = bracket;
+
+      const amount = generateDynamicAmount(bracket, recentAmountsRef.current);
+      recentAmountsRef.current = [amount, ...recentAmountsRef.current].slice(0, 15);
 
       const prefix = PREFIXES[Math.floor(Math.random() * PREFIXES.length)];
       const tail = String(Math.floor(100 + Math.random() * 900));
 
       return {
         key: Date.now() + Math.random(),
-        name,
+        name: fullName,
         phone: `+255 ${prefix}...${tail}`,
         place,
         amount,
@@ -212,16 +349,18 @@ export function PayoutToast({ enabled = true }: PayoutToastProps) {
         setNotice(createMixedNotice());
         playNotificationChime();
 
+        const visibleDuration = Math.round(4200 + Math.random() * 1100);
         hideTimer = window.setTimeout(() => {
-          if (!cancelled) setNotice(null);
-        }, 4800);
+          if (cancelled) return;
+          setNotice(null);
 
-        const nextDelay = Math.round(7000 + Math.random() * 6500);
-        scheduleNext(nextDelay);
+          const nextDelay = Math.round(2500 + Math.random() * 7000);
+          scheduleNext(nextDelay);
+        }, visibleDuration);
       }, delayMs);
     };
 
-    scheduleNext(2600);
+    scheduleNext(Math.round(2000 + Math.random() * 1400));
 
     return () => {
       cancelled = true;
