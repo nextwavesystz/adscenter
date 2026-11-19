@@ -18,6 +18,46 @@ const NAMES = [
   'Rehema Chacha',
   'Kelvin Mbwambo',
   'Mariam Ally',
+  'Hamisi Bakari',
+  'Salma Athumani',
+  'Ibrahimu Mwasambili',
+  'Joyce Kileo',
+  'Mohamed Nassoro',
+  'Upendo Shirima',
+  'Daniel Ndomba',
+  'Zuhura Omari',
+  'Godfrey Lyimo',
+  'Farida Selemani',
+  'Paschal Nyoni',
+  'Mwajuma Shabani',
+  'Elias Mwakalinga',
+  'Nasra Abdallah',
+  'Jackson Mhando',
+  'Beatrice Tarimo',
+  'Yusuph Hassani',
+  'Amina Mwinuka',
+  'Erick Mfugale',
+  'Pendo Mwasote',
+  'Ramadhani Kessy',
+  'Fatuma Salum',
+  'Josephat Komba',
+  'Rukia Issa',
+  'Dickson Magesa',
+  'Mwanahawa Rashid',
+  'Deogratius Mkude',
+  'Subira Mgaya',
+  'Omary Maulid',
+  'Janeth Mosha',
+  'Benedict Nkwabi',
+  'Hawa Mfinanga',
+  'Shabani Ngowi',
+  'Agnes Lema',
+  'Hassan Mnyagatwa',
+  'Zaituni Kondo',
+  'Meshack Mwandambo',
+  'Irene Mushi',
+  'Abdulrahman Msuya',
+  'Happiness Mgonja',
 ];
 
 const PLACES = [
@@ -31,11 +71,25 @@ const PLACES = [
   'Zanzibar',
   'Iringa',
   'Moshi',
+  'Tabora',
+  'Kigoma',
+  'Shinyanga',
+  'Bukoba',
+  'Mtwara',
+  'Songea',
+  'Singida',
+  'Musoma',
+  'Kahama',
+  'Babati',
 ];
 
-const SMALL_MEDIUM_AMOUNTS = [20000, 28000, 35000, 44000, 50000, 58000, 68000, 75000];
-const LARGE_AMOUNTS = [100000, 120000, 145000, 165000, 200000, 235000];
-const PREFIXES = ['786', '712', '755', '763', '678', '745', '718', '765'];
+const ALL_AMOUNTS = [
+  10000, 18000, 25000, 38000, 50000, 58000, 75000, 95000,
+  120000, 165000, 200000, 270000, 300000, 360000, 400000, 450000,
+  500000, 580000, 650000, 700000, 780000, 850000, 920000, 1000000,
+];
+
+const PREFIXES = ['786', '712', '755', '763', '678', '745', '718', '765', '754', '655', '784'];
 
 interface PayoutNotice {
   key: number;
@@ -46,8 +100,25 @@ interface PayoutNotice {
   minutesAgo: number;
 }
 
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+function shuffleArray<T>(items: readonly T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function drawFromDeck<T>(deckRef: { current: T[] }, source: readonly T[], lastValue?: T): T {
+  if (deckRef.current.length === 0) {
+    const reshuffled = shuffleArray(source);
+    if (lastValue !== undefined && reshuffled.length > 1 && reshuffled[0] === lastValue) {
+      const swapIdx = 1 + Math.floor(Math.random() * (reshuffled.length - 1));
+      [reshuffled[0], reshuffled[swapIdx]] = [reshuffled[swapIdx], reshuffled[0]];
+    }
+    deckRef.current = reshuffled;
+  }
+  return deckRef.current.shift() as T;
 }
 
 function formatTzs(amount: number): string {
@@ -79,7 +150,12 @@ interface PayoutToastProps {
 
 export function PayoutToast({ enabled = true }: PayoutToastProps) {
   const [notice, setNotice] = useState<PayoutNotice | null>(null);
-  const lastWasLargeRef = useRef(false);
+  const nameDeckRef = useRef<string[]>([]);
+  const placeDeckRef = useRef<string[]>([]);
+  const amountDeckRef = useRef<number[]>([]);
+  const lastNameRef = useRef<string | undefined>(undefined);
+  const lastPlaceRef = useRef<string | undefined>(undefined);
+  const lastAmountRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const handleUnlock = () => unlockAudio();
@@ -99,17 +175,33 @@ export function PayoutToast({ enabled = true }: PayoutToastProps) {
     let hideTimer: number | undefined;
 
     const createMixedNotice = (): PayoutNotice => {
-      // Alternate & mix small/medium payouts (20k–75k) with large payouts (100k–235k)
-      const useLarge = lastWasLargeRef.current ? Math.random() < 0.25 : Math.random() < 0.7;
-      lastWasLargeRef.current = useLarge;
+      const name = drawFromDeck(nameDeckRef, NAMES, lastNameRef.current);
+      lastNameRef.current = name;
+
+      const place = drawFromDeck(placeDeckRef, PLACES, lastPlaceRef.current);
+      lastPlaceRef.current = place;
+
+      let amount = drawFromDeck(amountDeckRef, ALL_AMOUNTS, lastAmountRef.current);
+      // Avoid consecutive low-only streaks by ensuring a follow-up pulls >= 100,000 TZS
+      if (lastAmountRef.current !== undefined && lastAmountRef.current < 100000 && amount < 100000) {
+        const higherIdx = amountDeckRef.current.findIndex((a) => a >= 100000);
+        if (higherIdx !== -1) {
+          const swapped = amountDeckRef.current[higherIdx];
+          amountDeckRef.current[higherIdx] = amount;
+          amount = swapped;
+        }
+      }
+      lastAmountRef.current = amount;
+
+      const prefix = PREFIXES[Math.floor(Math.random() * PREFIXES.length)];
       const tail = String(Math.floor(100 + Math.random() * 900));
 
       return {
         key: Date.now() + Math.random(),
-        name: pick(NAMES),
-        phone: `+255 ${pick(PREFIXES)}...${tail}`,
-        place: pick(PLACES),
-        amount: useLarge ? pick(LARGE_AMOUNTS) : pick(SMALL_MEDIUM_AMOUNTS),
+        name,
+        phone: `+255 ${prefix}...${tail}`,
+        place,
+        amount,
         minutesAgo: Math.floor(Math.random() * 6) + 1,
       };
     };
@@ -124,13 +216,12 @@ export function PayoutToast({ enabled = true }: PayoutToastProps) {
           if (!cancelled) setNotice(null);
         }, 4800);
 
-        // Varied interval between 7.5s and 13.5s
-        const nextDelay = Math.round(7500 + Math.random() * 6000);
+        const nextDelay = Math.round(7000 + Math.random() * 6500);
         scheduleNext(nextDelay);
       }, delayMs);
     };
 
-    scheduleNext(2800);
+    scheduleNext(2600);
 
     return () => {
       cancelled = true;
