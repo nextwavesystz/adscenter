@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import type { IncomingMessage, ServerResponse } from 'http';
 
-const TTS_MODEL = 'gemini-3.8-flash-tts';
+const TTS_MODEL = 'gemini-3.8-flash-lite-tts';
 const VOICE_NAME = 'Kore';
 const VOICE_STYLE =
   'Warm, natural, friendly young Tanzanian woman speaking fluent Swahili with authentic conversational intonation, soft warmth, and clear welcoming pacing — never robotic.';

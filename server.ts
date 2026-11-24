@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT || 3000);
-const TTS_MODEL = 'gemini-3.8-flash-tts';
+const TTS_MODEL = 'gemini-3.8-flash-lite-tts';
 const VOICE_NAME = 'Kore';
 const VOICE_STYLE =
   'Warm, natural, friendly young Tanzanian woman speaking fluent Swahili with authentic conversational intonation, soft warmth, and clear welcoming pacing — never robotic.';
