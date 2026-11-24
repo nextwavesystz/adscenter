@@ -273,16 +273,14 @@ export function SpotlightVoiceGuide({
       const token = playTokenRef.current;
       setAudioError(null);
 
-      let audio = audioRef.current;
-      if (!audio) {
-        audio = new Audio();
-        audio.preload = 'auto';
-        audio.setAttribute('playsinline', 'true');
-        audioRef.current = audio;
-      }
+      const audio = audioRef.current;
+      if (!audio) return;
 
       const cachedUrl = audioUrlCache.get(targetStep.id);
-      audio.src = cachedUrl || targetStep.audioUrl;
+      const nextSrc = cachedUrl || targetStep.audioUrl;
+      if (audio.getAttribute('src') !== nextSrc) {
+        audio.src = nextSrc;
+      }
       audio.currentTime = 0;
       attachAudioCueSync(audio, targetStep, token, !cachedUrl);
 
@@ -305,7 +303,7 @@ export function SpotlightVoiceGuide({
     [muted, stopAudio, attachAudioCueSync],
   );
 
-  // Trigger audio synchronously when step becomes active or changes, and prefetch next step
+  // Trigger audio immediately when step becomes active or changes, and prefetch next step
   useEffect(() => {
     setCueIndex(0);
 
@@ -324,10 +322,18 @@ export function SpotlightVoiceGuide({
       void fetchStepVoiceUrl(nextStep).catch(() => {});
     }
 
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && audioRef.current?.paused && !muted) {
+        playStepVoice(step);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
       stopAudio();
     };
-  }, [active, stepIndex, step, currentScreen, playStepVoice, stopAudio]);
+  }, [active, stepIndex, step, currentScreen, muted, playStepVoice, stopAudio]);
 
   // Fallback cue progression if audio is muted so visual highlight still demonstrates Play & Nunua
   useEffect(() => {
@@ -516,15 +522,17 @@ export function SpotlightVoiceGuide({
   const isLastStep = stepIndex === TOUR_STEPS.length - 1;
 
   return (
-    <AnimatePresence>
-      {active && (
-        <div
-          className="fixed inset-0 z-[80] pointer-events-none"
-          aria-live="polite"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Mwongozo hatua ${stepIndex + 1} kati ya ${TOUR_STEPS.length}`}
-        >
+    <>
+      <audio ref={audioRef} autoPlay playsInline preload="auto" className="hidden" />
+      <AnimatePresence>
+        {active && (
+          <div
+            className="fixed inset-0 z-[80] pointer-events-none"
+            aria-live="polite"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Mwongozo hatua ${stepIndex + 1} kati ya ${TOUR_STEPS.length}`}
+          >
           {/* Dimmed backdrop when target is still mounting */}
           {!rect && (
             <motion.div
@@ -707,7 +715,8 @@ export function SpotlightVoiceGuide({
             </div>
           </motion.div>
         </div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
