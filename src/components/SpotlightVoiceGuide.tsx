@@ -216,33 +216,51 @@ export function SpotlightVoiceGuide({
       audioRef.current.ontimeupdate = null;
       audioRef.current.onended = null;
       audioRef.current.onerror = null;
-      audioRef.current = null;
     }
   }, []);
 
-  const attachAudioCueSync = useCallback((audio: HTMLAudioElement, targetStep: TourStep, token: number) => {
-    const syncCue = () => {
-      if (token !== playTokenRef.current) return;
-      const nextCueIdx = getCueIndexForTime(targetStep.cues, audio.currentTime);
-      setCueIndex((prev) => (prev === nextCueIdx ? prev : nextCueIdx));
-    };
+  const attachAudioCueSync = useCallback(
+    (audio: HTMLAudioElement, targetStep: TourStep, token: number, allowApiFallback: boolean) => {
+      const syncCue = () => {
+        if (token !== playTokenRef.current) return;
+        const nextCueIdx = getCueIndexForTime(targetStep.cues, audio.currentTime);
+        setCueIndex((prev) => (prev === nextCueIdx ? prev : nextCueIdx));
+      };
 
-    audio.ontimeupdate = syncCue;
-    audio.onended = () => {
-      if (token === playTokenRef.current) {
-        setAudioStatus('paused');
-      }
-    };
-    audio.onerror = () => {
-      if (token === playTokenRef.current) {
+      audio.ontimeupdate = syncCue;
+      audio.onended = () => {
+        if (token === playTokenRef.current) {
+          setAudioStatus('paused');
+        }
+      };
+      audio.onerror = async () => {
+        if (token !== playTokenRef.current) return;
+        if (allowApiFallback) {
+          try {
+            const url = await fetchStepVoiceUrl(targetStep);
+            if (token !== playTokenRef.current) return;
+            audio.src = url;
+            attachAudioCueSync(audio, targetStep, token, false);
+            await audio.play();
+            if (token === playTokenRef.current) setAudioStatus('playing');
+            return;
+          } catch (err) {
+            if (token !== playTokenRef.current) return;
+            const msg = err instanceof Error ? err.message : 'Sauti imeshindwa kucheza.';
+            setAudioStatus('error');
+            setAudioError(msg);
+            return;
+          }
+        }
         setAudioStatus('error');
         setAudioError('Sauti imeshindwa kucheza.');
-      }
-    };
-  }, []);
+      };
+    },
+    [],
+  );
 
   const playStepVoice = useCallback(
-    async (targetStep: TourStep) => {
+    (targetStep: TourStep) => {
       setCueIndex(0);
 
       if (muted) {
@@ -254,38 +272,40 @@ export function SpotlightVoiceGuide({
       stopAudio();
       const token = playTokenRef.current;
       setAudioError(null);
-      setAudioStatus('loading');
 
-      try {
-        const url = await fetchStepVoiceUrl(targetStep);
-        if (token !== playTokenRef.current) return;
-
-        const audio = new Audio(url);
+      let audio = audioRef.current;
+      if (!audio) {
+        audio = new Audio();
         audio.preload = 'auto';
+        audio.setAttribute('playsinline', 'true');
         audioRef.current = audio;
-        attachAudioCueSync(audio, targetStep, token);
+      }
 
-        try {
-          await audio.play();
-          if (token === playTokenRef.current) {
-            setAudioStatus('playing');
-          }
-        } catch {
-          if (token === playTokenRef.current) {
-            setAudioStatus('needs-tap');
-          }
-        }
-      } catch (err) {
-        if (token !== playTokenRef.current) return;
-        const msg = err instanceof Error ? err.message : 'Hitilafu ya kupakia sauti.';
-        setAudioError(msg);
-        setAudioStatus('error');
+      const cachedUrl = audioUrlCache.get(targetStep.id);
+      audio.src = cachedUrl || targetStep.audioUrl;
+      audio.currentTime = 0;
+      attachAudioCueSync(audio, targetStep, token, !cachedUrl);
+
+      setAudioStatus('loading');
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            if (token === playTokenRef.current) {
+              setAudioStatus('playing');
+            }
+          })
+          .catch(() => {
+            if (token === playTokenRef.current) {
+              setAudioStatus('needs-tap');
+            }
+          });
       }
     },
     [muted, stopAudio, attachAudioCueSync],
   );
 
-  // Trigger audio whenever step becomes active or changes, and prefetch next step
+  // Trigger audio synchronously when step becomes active or changes, and prefetch next step
   useEffect(() => {
     setCueIndex(0);
 
@@ -297,7 +317,7 @@ export function SpotlightVoiceGuide({
 
     if (step.screen !== currentScreen) return;
 
-    void playStepVoice(step);
+    playStepVoice(step);
 
     const nextStep = TOUR_STEPS[stepIndex + 1];
     if (nextStep) {
@@ -325,27 +345,44 @@ export function SpotlightVoiceGuide({
     };
   }, [active, muted, step, currentScreen]);
 
-  // If autoplay was blocked on first load, unlock & play immediately on the user's first tap
+  // If browser autoplay policy blocked audio before first touch, unlock & start immediately on any interaction
   useEffect(() => {
     if (!active || audioStatus !== 'needs-tap' || muted) return;
 
+    let playingStarted = false;
     const handleFirstGesture = () => {
+      if (playingStarted) return;
       unlockAudio();
       const existing = audioRef.current;
       if (existing) {
         existing
           .play()
-          .then(() => setAudioStatus('playing'))
-          .catch(() => {});
+          .then(() => {
+            playingStarted = true;
+            cleanup();
+            setAudioStatus('playing');
+          })
+          .catch(() => {
+            // Wait for touchend/click in the same tap sequence
+          });
       } else {
-        void playStepVoice(step);
+        playStepVoice(step);
       }
     };
 
-    window.addEventListener('pointerdown', handleFirstGesture, { once: true, capture: true });
-    return () => {
+    const cleanup = () => {
       window.removeEventListener('pointerdown', handleFirstGesture, { capture: true });
+      window.removeEventListener('touchend', handleFirstGesture, { capture: true });
+      window.removeEventListener('click', handleFirstGesture, { capture: true });
+      window.removeEventListener('keydown', handleFirstGesture, { capture: true });
     };
+
+    window.addEventListener('pointerdown', handleFirstGesture, { capture: true });
+    window.addEventListener('touchend', handleFirstGesture, { capture: true, passive: true });
+    window.addEventListener('click', handleFirstGesture, { capture: true });
+    window.addEventListener('keydown', handleFirstGesture, { capture: true });
+
+    return cleanup;
   }, [active, audioStatus, muted, playStepVoice, step]);
 
   // Measure active target selector & smoothly scroll / keep synchronized on cue transitions
@@ -451,7 +488,7 @@ export function SpotlightVoiceGuide({
     } else {
       setMuted(false);
       setTimeout(() => {
-        void playStepVoice(step);
+        playStepVoice(step);
       }, 20);
     }
   };
@@ -464,10 +501,10 @@ export function SpotlightVoiceGuide({
       existing
         .play()
         .then(() => setAudioStatus('playing'))
-        .catch(() => void playStepVoice(step));
+        .catch(() => playStepVoice(step));
       return;
     }
-    void playStepVoice(step);
+    playStepVoice(step);
   };
 
   // Decide card placement (top vs bottom) so it never covers the highlighted element
@@ -564,7 +601,9 @@ export function SpotlightVoiceGuide({
                     className="inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-sky-400/35 bg-sky-400/15 px-2.5 py-1 text-[11px] font-bold text-sky-200 transition hover:bg-sky-400/25"
                   >
                     <Volume2 className="size-3.5 text-sky-300" aria-hidden="true" />
-                    <span>{audioStatus === 'needs-tap' ? 'Sikiliza Sauti' : 'Rudia Sauti'}</span>
+                    <span>
+                      {audioStatus === 'needs-tap' ? 'Gusa popote kusikiliza' : 'Rudia Sauti'}
+                    </span>
                   </motion.button>
                 ) : audioStatus === 'loading' ? (
                   <span className="inline-flex min-h-8 items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-blue-200/80">
