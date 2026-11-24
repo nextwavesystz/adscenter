@@ -1,13 +1,14 @@
-import { ArrowRight, Play, ShieldCheck, Sparkles, TrendingUp, Wallet } from 'lucide-react';
+import { ArrowRight, Play, ShieldCheck, Sparkles, TrendingUp, Volume2, Wallet } from 'lucide-react';
 import { motion } from 'motion/react';
 import { REGISTER_URL } from '../constants/config';
 import { unlockAudio } from '../utils/sound';
 
 interface WelcomeScreenProps {
   onEnter: () => void;
+  onReplayGuide?: () => void;
 }
 
-export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
+export function WelcomeScreen({ onEnter, onReplayGuide }: WelcomeScreenProps) {
   const handleStart = () => {
     unlockAudio();
     onEnter();
@@ -49,14 +50,29 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           <span>AdsCenter</span>
         </div>
 
-        <a
-          href={REGISTER_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex min-h-10 items-center rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-blue-100 backdrop-blur-md transition hover:border-sky-300/40 hover:bg-white/10 hover:text-white"
-        >
-          Fungua Account
-        </a>
+        <div className="flex items-center gap-2.5">
+          {onReplayGuide && (
+            <button
+              type="button"
+              onClick={() => {
+                unlockAudio();
+                onReplayGuide();
+              }}
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-sky-400/30 bg-[#0B2249]/80 px-3.5 py-2 text-xs font-semibold text-sky-200 backdrop-blur-md transition hover:border-sky-300/50 hover:bg-[#113166] hover:text-white"
+            >
+              <Volume2 className="size-3.5 text-sky-300" aria-hidden="true" />
+              <span>Mwongozo</span>
+            </button>
+          )}
+          <a
+            href={REGISTER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-10 items-center rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-blue-100 backdrop-blur-md transition hover:border-sky-300/40 hover:bg-white/10 hover:text-white"
+          >
+            Fungua Account
+          </a>
+        </div>
       </header>
 
       {/* Center Editorial Hero */}
@@ -109,6 +125,7 @@ export function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             type="button"
+            data-tour="welcome-start"
             onClick={handleStart}
             className="inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#155EEF] to-[#2563EB] px-8 py-4 font-display text-base font-extrabold tracking-wide text-white shadow-2xl shadow-blue-600/35 ring-1 ring-sky-300/30 transition hover:from-[#1D6BFF] hover:to-[#3B82F6] sm:w-auto"
           >

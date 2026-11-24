@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   Sparkles,
   TrendingUp,
+  Volume2,
   Wallet,
   WifiOff,
 } from 'lucide-react';
@@ -17,6 +18,7 @@ import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { InstallAppModal } from './components/InstallAppModal';
 import { PayoutToast } from './components/PayoutToast';
+import { SpotlightVoiceGuide } from './components/SpotlightVoiceGuide';
 import { SupportContactModal } from './components/SupportContactModal';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
 import { WelcomeScreen } from './components/WelcomeScreen';
@@ -94,6 +96,8 @@ export default function App() {
     useWallet();
 
   const [showWelcome, setShowWelcome] = useState(true);
+  const [tourActive, setTourActive] = useState(true);
+  const [tourStep, setTourStep] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<'Zote' | VideoCategory>('Zote');
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT);
@@ -170,7 +174,19 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <AnimatePresence mode="wait">
         {showWelcome ? (
-          <WelcomeScreen key="welcome-screen" onEnter={() => setShowWelcome(false)} />
+          <WelcomeScreen
+            key="welcome-screen"
+            onEnter={() => {
+              setShowWelcome(false);
+              if (tourActive && tourStep === 0) {
+                setTourStep(1);
+              }
+            }}
+            onReplayGuide={() => {
+              setTourStep(0);
+              setTourActive(true);
+            }}
+          />
         ) : (
           <motion.div
             key="dashboard-shell"
@@ -295,7 +311,7 @@ export default function App() {
                     {/* Left: Glassmorphic Wallet & Actions Bento */}
                     <div className="flex flex-col justify-between gap-4 lg:col-span-7">
                       {/* Dual Metric Tiles */}
-                      <div className="grid gap-4 sm:grid-cols-2">
+                      <div data-tour="dashboard-wallet" className="grid gap-4 sm:grid-cols-2">
                         {/* Net Profit */}
                         <article className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#155EEF] via-[#1347C2] to-[#0A2D82] p-5 text-white shadow-xl shadow-blue-950/50 ring-1 ring-sky-300/25">
                           <div className="flex items-center justify-between">
@@ -402,7 +418,10 @@ export default function App() {
                       </div>
 
                       {/* Account Protection Callout */}
-                      <div className="flex flex-col justify-between gap-4 rounded-[24px] border border-sky-400/20 bg-gradient-to-r from-[#0C2147] to-[#0A1A38] p-5 sm:flex-row sm:items-center">
+                      <div
+                        data-tour="dashboard-payout"
+                        className="flex flex-col justify-between gap-4 rounded-[24px] border border-sky-400/20 bg-gradient-to-r from-[#0C2147] to-[#0A1A38] p-5 sm:flex-row sm:items-center"
+                      >
                         <div className="min-w-0">
                           <h2 className="font-display text-base font-bold leading-snug text-white">
                             Tazama video za wafanyabiashara — ulipwe kulingana na muda uliotazama!
@@ -566,6 +585,7 @@ export default function App() {
 
                 {/* Fluid Native-OS Category Segmented Tabs */}
                 <div
+                  data-tour="dashboard-tasks"
                   role="tablist"
                   aria-label="Chuja kwa aina ya bidhaa"
                   className="no-scrollbar mt-5 flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-[#DCE5F4] bg-white p-1.5 shadow-xs"
@@ -799,6 +819,24 @@ export default function App() {
               <span className="whitespace-nowrap">Huduma kwa wateja</span>
             </motion.button>
 
+            {/* Floating Voice Guide Replay Trigger (bottom-left) */}
+            {isOnline && !tourActive && (
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                type="button"
+                onClick={() => {
+                  unlockAudio();
+                  setTourStep(1);
+                  setTourActive(true);
+                }}
+                aria-label="Fungua Mwongozo wa Sauti"
+                className="fixed bottom-4 left-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-sky-400/30 bg-[#0A1931]/95 px-4 py-2.5 text-xs font-bold text-sky-200 shadow-xl shadow-blue-950/35 backdrop-blur-md transition hover:bg-[#155EEF] hover:text-white sm:bottom-6 sm:left-6"
+              >
+                <Volume2 className="size-4 text-sky-300" aria-hidden="true" />
+                <span className="whitespace-nowrap">Mwongozo</span>
+              </motion.button>
+            )}
+
             {/* Non-intrusive Offline Mode Banner */}
             {!isOnline && (
               <div
@@ -850,8 +888,18 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Top Live Payout Notifications (Active once inside the dashboard) */}
-      <PayoutToast enabled={!showWelcome} />
+      {/* Interactive Female Voice Spotlight Guide */}
+      <SpotlightVoiceGuide
+        active={tourActive}
+        stepIndex={tourStep}
+        currentScreen={showWelcome ? 'welcome' : 'dashboard'}
+        onStepChange={setTourStep}
+        onRequestDashboard={() => setShowWelcome(false)}
+        onClose={() => setTourActive(false)}
+      />
+
+      {/* Top Live Payout Notifications (Active once inside the dashboard and after voice guide closes) */}
+      <PayoutToast enabled={!showWelcome && !tourActive} />
     </MotionConfig>
   );
 }
