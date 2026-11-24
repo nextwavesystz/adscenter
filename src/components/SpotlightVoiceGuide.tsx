@@ -351,7 +351,7 @@ export function SpotlightVoiceGuide({
     };
   }, [active, muted, step, currentScreen]);
 
-  // If browser autoplay policy blocked audio before first touch, unlock & start immediately on any interaction
+  // If browser autoplay policy blocked audio before first touch, unlock & start immediately on any valid activation gesture
   useEffect(() => {
     if (!active || audioStatus !== 'needs-tap' || muted) return;
 
@@ -369,7 +369,7 @@ export function SpotlightVoiceGuide({
             setAudioStatus('playing');
           })
           .catch(() => {
-            // Wait for touchend/click in the same tap sequence
+            // Wait for touchend/click activation in the same tap sequence
           });
       } else {
         playStepVoice(step);
@@ -377,13 +377,13 @@ export function SpotlightVoiceGuide({
     };
 
     const cleanup = () => {
-      window.removeEventListener('pointerdown', handleFirstGesture, { capture: true });
+      window.removeEventListener('pointerup', handleFirstGesture, { capture: true });
       window.removeEventListener('touchend', handleFirstGesture, { capture: true });
       window.removeEventListener('click', handleFirstGesture, { capture: true });
       window.removeEventListener('keydown', handleFirstGesture, { capture: true });
     };
 
-    window.addEventListener('pointerdown', handleFirstGesture, { capture: true });
+    window.addEventListener('pointerup', handleFirstGesture, { capture: true });
     window.addEventListener('touchend', handleFirstGesture, { capture: true, passive: true });
     window.addEventListener('click', handleFirstGesture, { capture: true });
     window.addEventListener('keydown', handleFirstGesture, { capture: true });
@@ -391,7 +391,7 @@ export function SpotlightVoiceGuide({
     return cleanup;
   }, [active, audioStatus, muted, playStepVoice, step]);
 
-  // Measure active target selector & smoothly scroll / keep synchronized on cue transitions
+  // Measure active target selector & smoothly track entrance transforms / cue transitions
   useEffect(() => {
     if (!active) {
       setRect(null);
@@ -401,6 +401,7 @@ export function SpotlightVoiceGuide({
     let cancelled = false;
     let scrollTimeout: number | undefined;
     let rafId = 0;
+    let trackRafId = 0;
 
     const findTargetEl = () => {
       const cueEl = document.querySelector(activeSelector) as HTMLElement | null;
@@ -420,12 +421,37 @@ export function SpotlightVoiceGuide({
       if (box.width <= 0 || box.height <= 0) return;
 
       const pad = 8;
-      setRect({
-        top: Math.max(4, box.top - pad),
-        left: Math.max(4, box.left - pad),
-        width: Math.min(window.innerWidth - 8, box.width + pad * 2),
-        height: box.height + pad * 2,
+      const nextRect: TargetRect = {
+        top: Math.round(Math.max(4, box.top - pad)),
+        left: Math.round(Math.max(4, box.left - pad)),
+        width: Math.round(Math.min(window.innerWidth - 8, box.width + pad * 2)),
+        height: Math.round(box.height + pad * 2),
+      };
+
+      setRect((prev) => {
+        if (
+          prev &&
+          Math.abs(prev.top - nextRect.top) < 1 &&
+          Math.abs(prev.left - nextRect.left) < 1 &&
+          Math.abs(prev.width - nextRect.width) < 1 &&
+          Math.abs(prev.height - nextRect.height) < 1
+        ) {
+          return prev;
+        }
+        return nextRect;
       });
+    };
+
+    const startSettlingTrack = () => {
+      const startTs = performance.now();
+      const tick = (now: number) => {
+        if (cancelled) return;
+        measure();
+        if (now - startTs < 900) {
+          trackRafId = window.requestAnimationFrame(tick);
+        }
+      };
+      trackRafId = window.requestAnimationFrame(tick);
     };
 
     const locateAndScroll = () => {
@@ -442,7 +468,7 @@ export function SpotlightVoiceGuide({
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         scrollTimeout = window.setTimeout(measure, 360);
       }
-      measure();
+      startSettlingTrack();
     };
 
     const delayMs = step.screen === 'dashboard' && cueIndex === 0 ? 220 : 20;
@@ -459,6 +485,7 @@ export function SpotlightVoiceGuide({
       window.clearTimeout(initDelay);
       if (scrollTimeout) window.clearTimeout(scrollTimeout);
       if (rafId) window.cancelAnimationFrame(rafId);
+      if (trackRafId) window.cancelAnimationFrame(trackRafId);
       window.removeEventListener('resize', measure);
       window.removeEventListener('scroll', measure);
       observer.disconnect();
@@ -587,36 +614,27 @@ export function SpotlightVoiceGuide({
               placeCardAtTop ? 'top-4 sm:top-6' : 'bottom-4 sm:bottom-6'
             }`}
           >
-            {/* Header Row: Step Counter + Live Cue Indicator + Voice Control + Ruka */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="inline-flex shrink-0 items-center rounded-lg border border-sky-400/30 bg-[#0D2B4E] px-2.5 py-1 text-[11px] font-extrabold tracking-wider text-sky-300 uppercase">
-                  MWONGOZO {stepIndex + 1}/{TOUR_STEPS.length}
-                </span>
-                {activeCue?.hintLabel && (
-                  <span className="truncate rounded-lg bg-sky-400/15 px-2 py-1 text-[11px] font-bold text-sky-200">
-                    {activeCue.hintLabel}
-                  </span>
-                )}
-              </div>
+            {/* Header Row: Collision-free responsive layout */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-lg border border-sky-400/30 bg-[#0D2B4E] px-2.5 py-1 text-[11px] font-extrabold tracking-wider text-sky-300 uppercase">
+                MWONGOZO {stepIndex + 1}/{TOUR_STEPS.length}
+              </span>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex shrink-0 items-center gap-1.5">
                 {audioStatus === 'needs-tap' || audioStatus === 'paused' ? (
                   <motion.button
                     whileTap={{ scale: 0.92 }}
                     type="button"
                     onClick={handleManualPlay}
-                    className="inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-sky-400/35 bg-sky-400/15 px-2.5 py-1 text-[11px] font-bold text-sky-200 transition hover:bg-sky-400/25"
+                    className="inline-flex min-h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-sky-400/35 bg-sky-400/15 px-2.5 py-1 text-[11px] font-bold text-sky-200 transition hover:bg-sky-400/25"
                   >
-                    <Volume2 className="size-3.5 text-sky-300" aria-hidden="true" />
-                    <span>
-                      {audioStatus === 'needs-tap' ? 'Gusa popote kusikiliza' : 'Rudia Sauti'}
-                    </span>
+                    <Volume2 className="size-3.5 shrink-0 text-sky-300" aria-hidden="true" />
+                    <span>{audioStatus === 'needs-tap' ? 'Washa Sauti' : 'Rudia Sauti'}</span>
                   </motion.button>
                 ) : audioStatus === 'loading' ? (
-                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-blue-200/80">
-                    <Loader2 className="size-3.5 animate-spin text-sky-300" aria-hidden="true" />
-                    <span>Inaandaa sauti...</span>
+                  <span className="inline-flex min-h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-blue-200/80">
+                    <Loader2 className="size-3.5 shrink-0 animate-spin text-sky-300" aria-hidden="true" />
+                    <span>Inaandaa...</span>
                   </span>
                 ) : audioStatus === 'playing' ? (
                   <motion.button
@@ -624,9 +642,9 @@ export function SpotlightVoiceGuide({
                     type="button"
                     onClick={handleToggleMute}
                     aria-label="Zima sauti"
-                    className="inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-sky-400/30 bg-sky-400/15 px-2.5 py-1 text-[11px] font-bold text-sky-200 transition hover:bg-sky-400/25"
+                    className="inline-flex min-h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-sky-400/30 bg-sky-400/15 px-2.5 py-1 text-[11px] font-bold text-sky-200 transition hover:bg-sky-400/25"
                   >
-                    <Volume2 className="size-3.5 text-sky-300" aria-hidden="true" />
+                    <Volume2 className="size-3.5 shrink-0 animate-pulse text-sky-300" aria-hidden="true" />
                     <span>Inaongea</span>
                   </motion.button>
                 ) : (
@@ -635,7 +653,7 @@ export function SpotlightVoiceGuide({
                     type="button"
                     onClick={handleToggleMute}
                     aria-label={muted ? 'Washa sauti' : 'Zima sauti'}
-                    className="grid size-8 place-items-center rounded-lg bg-white/5 text-blue-200/80 transition hover:bg-white/10"
+                    className="grid size-8 shrink-0 place-items-center rounded-lg bg-white/5 text-blue-200/80 transition hover:bg-white/10"
                   >
                     {muted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
                   </motion.button>
@@ -644,18 +662,38 @@ export function SpotlightVoiceGuide({
                 <button
                   type="button"
                   onClick={handleSkip}
-                  className="min-h-8 rounded-lg px-2.5 py-1 text-xs font-semibold text-blue-200/75 transition hover:bg-white/10 hover:text-white"
+                  className="min-h-8 shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold text-blue-200/75 transition hover:bg-white/10 hover:text-white"
                 >
                   Ruka
                 </button>
               </div>
             </div>
 
+            {activeCue?.hintLabel && (
+              <div className="mt-2.5">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-sky-400/25 bg-sky-400/15 px-2.5 py-1 text-[11px] font-bold text-sky-200">
+                  <span className="size-1.5 rounded-full bg-sky-300 animate-pulse" />
+                  <span>{activeCue.hintLabel}</span>
+                </span>
+              </div>
+            )}
+
             {/* Step Title & Instructions */}
             <h2 className="mt-3 font-display text-xl font-extrabold tracking-tight text-white">
               {step.title}
             </h2>
             <p className="mt-1.5 text-sm leading-relaxed text-blue-100/85">{step.description}</p>
+
+            {audioStatus === 'needs-tap' && (
+              <button
+                type="button"
+                onClick={handleManualPlay}
+                className="mt-3 flex w-full items-center gap-2 rounded-xl border border-sky-400/30 bg-sky-400/10 px-3 py-2 text-left text-xs font-semibold text-sky-200 transition hover:bg-sky-400/20"
+              >
+                <Volume2 className="size-4 shrink-0 text-sky-300" aria-hidden="true" />
+                <span>Gusa hapa au popote kusikiliza sauti ya mwongozo</span>
+              </button>
+            )}
 
             {audioStatus === 'error' && audioError && (
               <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
