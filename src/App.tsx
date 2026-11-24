@@ -366,6 +366,7 @@ export default function App() {
                           <motion.button
                             whileTap={{ scale: 0.96 }}
                             type="button"
+                            data-tour="dashboard-withdraw"
                             onClick={() => setWithdrawOpen(true)}
                             className="mt-4 flex min-h-11 w-full items-center justify-center rounded-xl bg-sky-400 px-4 py-2 text-xs font-extrabold text-[#050E1F] transition hover:bg-sky-300"
                           >
@@ -636,7 +637,7 @@ export default function App() {
                 ) : (
                   <>
                     <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                      {displayedVideos.map((task) => {
+                      {displayedVideos.map((task, idx) => {
                         const isWatched = watchedIds.includes(task.id);
                         return (
                           <motion.article
@@ -705,6 +706,7 @@ export default function App() {
                                 <motion.button
                                   whileTap={{ scale: 0.96 }}
                                   type="button"
+                                  data-tour={idx === 0 ? 'first-video-play' : undefined}
                                   onClick={() => handlePlayVideo(task)}
                                   className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-[#0A1931] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#155EEF] whitespace-nowrap"
                                 >
@@ -718,6 +720,7 @@ export default function App() {
                                 <motion.button
                                   whileTap={{ scale: 0.96 }}
                                   type="button"
+                                  data-tour={idx === 0 ? 'first-video-buy' : undefined}
                                   onClick={() => handleOpenSupport(task.title)}
                                   className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-[#D5E0F0] bg-[#F8FAFD] px-3 py-2 text-xs font-semibold text-[#0A192F] transition hover:border-[#9AB3DA] hover:bg-[#E7EEF9] whitespace-nowrap"
                                 >

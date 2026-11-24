@@ -3,12 +3,20 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { unlockAudio } from '../utils/sound';
 
+export interface TourCue {
+  atSeconds: number;
+  selector: string;
+  hintLabel?: string;
+}
+
 export interface TourStep {
   id: string;
   selector: string;
+  cues?: TourCue[];
   title: string;
   description: string;
   speechText: string;
+  audioUrl: string;
   screen: 'welcome' | 'dashboard';
 }
 
@@ -22,6 +30,7 @@ export const TOUR_STEPS: TourStep[] = [
       'Kuanza kuangalia video za wafanyabiashara kwenye jukwaa hili na kupokea pesa kwa kila video unayotazama au kununua bidhaa zao utakazo zipenda, bonyeza hapa.',
     speechText:
       'Karibu AdsCenter! Kuanza kuangalia video za wafanyabiashara kwenye jukwaa hili, na kupokea pesa kwa kila video unayotazama au kununua bidhaa zao utakazozipenda, bonyeza hapa.',
+    audioUrl: '/audio/welcome-start.mp3',
   },
   {
     id: 'dashboard-wallet',
@@ -32,26 +41,58 @@ export const TOUR_STEPS: TourStep[] = [
       'Hapa kwenye Net Profit na Balance utaona salio lako likiongezeka papo hapo kila unapomaliza kutazama video ya mfanyabiashara.',
     speechText:
       'Hapa kwenye Net Profit na Balance, utaona pesa zako zikiongezeka papo hapo kila unapomaliza kutazama video moja hadi mwisho.',
+    audioUrl: '/audio/dashboard-wallet.mp3',
   },
   {
     id: 'dashboard-tasks',
     selector: '[data-tour="dashboard-tasks"]',
+    cues: [
+      {
+        atSeconds: 0,
+        selector: '[data-tour="dashboard-tasks"]',
+        hintLabel: 'Chagua video',
+      },
+      {
+        atSeconds: 3.6,
+        selector: '[data-tour="first-video-play"]',
+        hintLabel: 'Bonyeza Play',
+      },
+      {
+        atSeconds: 8.3,
+        selector: '[data-tour="first-video-buy"]',
+        hintLabel: 'Bonyeza Nunua / Buy',
+      },
+    ],
     screen: 'dashboard',
     title: 'Chagua na Tazama Video',
     description:
       'Chagua kundi au video unayoipenda hapa chini. Bonyeza Play kuitazama na ulipwe, au bonyeza Nunua kuwasiliana na muuzaji moja kwa moja.',
     speechText:
       'Chagua video ya mfanyabiashara unayoipenda hapa chini. Bonyeza Play kuitazama hadi sekunde ziishe upate malipo, au bonyeza Nunua kuwasiliana na muuzaji.',
+    audioUrl: '/audio/dashboard-tasks.mp3',
   },
   {
     id: 'dashboard-payout',
-    selector: '[data-tour="dashboard-payout"]',
+    selector: '[data-tour="dashboard-withdraw"]',
+    cues: [
+      {
+        atSeconds: 0,
+        selector: '[data-tour="dashboard-withdraw"]',
+        hintLabel: 'Bonyeza Toa pesa',
+      },
+      {
+        atSeconds: 4.1,
+        selector: '[data-tour="dashboard-payout"]',
+        hintLabel: 'Fungua account sasa',
+      },
+    ],
     screen: 'dashboard',
     title: 'Fungua Account & Toa Pesa',
     description:
       'Ukishakusanya salio lako, bonyeza Toa pesa au Fungua account sasa ili kusajili namba yako na kupokea malipo yako kwa usalama.',
     speechText:
       'Na ukishakusanya salio lako, bonyeza Toa pesa au Fungua account sasa ili kusajili namba yako na kupokea malipo yako kwa usalama.',
+    audioUrl: '/audio/dashboard-payout.mp3',
   },
 ];
 
@@ -74,18 +115,34 @@ interface SpotlightVoiceGuideProps {
 const audioUrlCache = new Map<string, string>();
 const inFlightRequests = new Map<string, Promise<string>>();
 
-async function fetchGeminiVoiceUrl(text: string): Promise<string> {
-  const cached = audioUrlCache.get(text);
+async function fetchStepVoiceUrl(targetStep: TourStep): Promise<string> {
+  const cacheKey = targetStep.id;
+  const cached = audioUrlCache.get(cacheKey);
   if (cached) return cached;
 
-  const existing = inFlightRequests.get(text);
+  const existing = inFlightRequests.get(cacheKey);
   if (existing) return existing;
 
   const promise = (async () => {
+    try {
+      const staticRes = await fetch(targetStep.audioUrl);
+      const contentType = staticRes.headers.get('content-type') || '';
+      if (staticRes.ok && contentType.includes('audio')) {
+        const blob = await staticRes.blob();
+        if (blob.size > 1000) {
+          const objectUrl = URL.createObjectURL(blob);
+          audioUrlCache.set(cacheKey, objectUrl);
+          return objectUrl;
+        }
+      }
+    } catch {
+      // Fall through to live server endpoint
+    }
+
     const res = await fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text: targetStep.speechText }),
     });
 
     if (!res.ok) {
@@ -101,16 +158,27 @@ async function fetchGeminiVoiceUrl(text: string): Promise<string> {
 
     const blob = await res.blob();
     const objectUrl = URL.createObjectURL(blob);
-    audioUrlCache.set(text, objectUrl);
+    audioUrlCache.set(cacheKey, objectUrl);
     return objectUrl;
   })();
 
-  inFlightRequests.set(text, promise);
+  inFlightRequests.set(cacheKey, promise);
   try {
     return await promise;
   } finally {
-    inFlightRequests.delete(text);
+    inFlightRequests.delete(cacheKey);
   }
+}
+
+function getCueIndexForTime(cues: TourCue[] | undefined, seconds: number): number {
+  if (!cues || cues.length === 0) return 0;
+  let matched = 0;
+  for (let i = 0; i < cues.length; i += 1) {
+    if (seconds >= cues[i].atSeconds) {
+      matched = i;
+    }
+  }
+  return matched;
 }
 
 export function SpotlightVoiceGuide({
@@ -122,6 +190,7 @@ export function SpotlightVoiceGuide({
   onClose,
 }: SpotlightVoiceGuideProps) {
   const step = TOUR_STEPS[stepIndex] ?? TOUR_STEPS[0];
+  const [cueIndex, setCueIndex] = useState(0);
   const [rect, setRect] = useState<TargetRect | null>(null);
   const [viewport, setViewport] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 390,
@@ -137,18 +206,45 @@ export function SpotlightVoiceGuide({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playTokenRef = useRef(0);
 
+  const activeCue = step.cues?.[cueIndex];
+  const activeSelector = activeCue?.selector ?? step.selector;
+
   const stopAudio = useCallback(() => {
     playTokenRef.current += 1;
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.ontimeupdate = null;
       audioRef.current.onended = null;
       audioRef.current.onerror = null;
       audioRef.current = null;
     }
   }, []);
 
+  const attachAudioCueSync = useCallback((audio: HTMLAudioElement, targetStep: TourStep, token: number) => {
+    const syncCue = () => {
+      if (token !== playTokenRef.current) return;
+      const nextCueIdx = getCueIndexForTime(targetStep.cues, audio.currentTime);
+      setCueIndex((prev) => (prev === nextCueIdx ? prev : nextCueIdx));
+    };
+
+    audio.ontimeupdate = syncCue;
+    audio.onended = () => {
+      if (token === playTokenRef.current) {
+        setAudioStatus('paused');
+      }
+    };
+    audio.onerror = () => {
+      if (token === playTokenRef.current) {
+        setAudioStatus('error');
+        setAudioError('Sauti imeshindwa kucheza.');
+      }
+    };
+  }, []);
+
   const playStepVoice = useCallback(
-    async (text: string) => {
+    async (targetStep: TourStep) => {
+      setCueIndex(0);
+
       if (muted) {
         stopAudio();
         setAudioStatus('paused');
@@ -161,24 +257,13 @@ export function SpotlightVoiceGuide({
       setAudioStatus('loading');
 
       try {
-        const url = await fetchGeminiVoiceUrl(text);
+        const url = await fetchStepVoiceUrl(targetStep);
         if (token !== playTokenRef.current) return;
 
         const audio = new Audio(url);
         audio.preload = 'auto';
         audioRef.current = audio;
-
-        audio.onended = () => {
-          if (token === playTokenRef.current) {
-            setAudioStatus('paused');
-          }
-        };
-        audio.onerror = () => {
-          if (token === playTokenRef.current) {
-            setAudioStatus('error');
-            setAudioError('Sauti imeshindwa kucheza.');
-          }
-        };
+        attachAudioCueSync(audio, targetStep, token);
 
         try {
           await audio.play();
@@ -186,7 +271,6 @@ export function SpotlightVoiceGuide({
             setAudioStatus('playing');
           }
         } catch {
-          // Mobile/desktop browser blocked autoplay before user tap
           if (token === playTokenRef.current) {
             setAudioStatus('needs-tap');
           }
@@ -198,11 +282,13 @@ export function SpotlightVoiceGuide({
         setAudioStatus('error');
       }
     },
-    [muted, stopAudio],
+    [muted, stopAudio, attachAudioCueSync],
   );
 
   // Trigger audio whenever step becomes active or changes, and prefetch next step
   useEffect(() => {
+    setCueIndex(0);
+
     if (!active) {
       stopAudio();
       setAudioStatus('idle');
@@ -211,17 +297,33 @@ export function SpotlightVoiceGuide({
 
     if (step.screen !== currentScreen) return;
 
-    void playStepVoice(step.speechText);
+    void playStepVoice(step);
 
     const nextStep = TOUR_STEPS[stepIndex + 1];
     if (nextStep) {
-      void fetchGeminiVoiceUrl(nextStep.speechText).catch(() => {});
+      void fetchStepVoiceUrl(nextStep).catch(() => {});
     }
 
     return () => {
       stopAudio();
     };
-  }, [active, stepIndex, step.screen, step.speechText, currentScreen, playStepVoice, stopAudio]);
+  }, [active, stepIndex, step, currentScreen, playStepVoice, stopAudio]);
+
+  // Fallback cue progression if audio is muted so visual highlight still demonstrates Play & Nunua
+  useEffect(() => {
+    if (!active || step.screen !== currentScreen || !step.cues || step.cues.length <= 1) return;
+    if (!muted) return;
+
+    const timers = step.cues.slice(1).map((cue, idx) =>
+      window.setTimeout(() => {
+        setCueIndex(idx + 1);
+      }, cue.atSeconds * 1000),
+    );
+
+    return () => {
+      timers.forEach((t) => window.clearTimeout(t));
+    };
+  }, [active, muted, step, currentScreen]);
 
   // If autoplay was blocked on first load, unlock & play immediately on the user's first tap
   useEffect(() => {
@@ -236,7 +338,7 @@ export function SpotlightVoiceGuide({
           .then(() => setAudioStatus('playing'))
           .catch(() => {});
       } else {
-        void playStepVoice(step.speechText);
+        void playStepVoice(step);
       }
     };
 
@@ -244,9 +346,9 @@ export function SpotlightVoiceGuide({
     return () => {
       window.removeEventListener('pointerdown', handleFirstGesture, { capture: true });
     };
-  }, [active, audioStatus, muted, playStepVoice, step.speechText]);
+  }, [active, audioStatus, muted, playStepVoice, step]);
 
-  // Measure target element rect & keep synchronized on scroll / resize / screen transition
+  // Measure active target selector & smoothly scroll / keep synchronized on cue transitions
   useEffect(() => {
     if (!active) {
       setRect(null);
@@ -257,10 +359,16 @@ export function SpotlightVoiceGuide({
     let scrollTimeout: number | undefined;
     let rafId = 0;
 
+    const findTargetEl = () => {
+      const cueEl = document.querySelector(activeSelector) as HTMLElement | null;
+      if (cueEl) return cueEl;
+      return document.querySelector(step.selector) as HTMLElement | null;
+    };
+
     const measure = () => {
       if (cancelled) return;
       setViewport({ width: window.innerWidth, height: window.innerHeight });
-      const el = document.querySelector(step.selector) as HTMLElement | null;
+      const el = findTargetEl();
       if (!el) {
         setRect(null);
         return;
@@ -279,7 +387,7 @@ export function SpotlightVoiceGuide({
 
     const locateAndScroll = () => {
       if (cancelled) return;
-      const el = document.querySelector(step.selector) as HTMLElement | null;
+      const el = findTargetEl();
       if (!el) {
         rafId = window.requestAnimationFrame(locateAndScroll);
         return;
@@ -294,8 +402,8 @@ export function SpotlightVoiceGuide({
       measure();
     };
 
-    // Wait briefly when screen just transitioned from Welcome to Dashboard
-    const initDelay = window.setTimeout(locateAndScroll, step.screen === 'dashboard' ? 240 : 40);
+    const delayMs = step.screen === 'dashboard' && cueIndex === 0 ? 220 : 20;
+    const initDelay = window.setTimeout(locateAndScroll, delayMs);
 
     window.addEventListener('resize', measure);
     window.addEventListener('scroll', measure, { passive: true });
@@ -312,7 +420,7 @@ export function SpotlightVoiceGuide({
       window.removeEventListener('scroll', measure);
       observer.disconnect();
     };
-  }, [active, step.selector, step.screen, currentScreen]);
+  }, [active, activeSelector, step.selector, step.screen, currentScreen, cueIndex]);
 
   const handleNext = () => {
     unlockAudio();
@@ -343,7 +451,7 @@ export function SpotlightVoiceGuide({
     } else {
       setMuted(false);
       setTimeout(() => {
-        void playStepVoice(step.speechText);
+        void playStepVoice(step);
       }, 20);
     }
   };
@@ -356,10 +464,10 @@ export function SpotlightVoiceGuide({
       existing
         .play()
         .then(() => setAudioStatus('playing'))
-        .catch(() => void playStepVoice(step.speechText));
+        .catch(() => void playStepVoice(step));
       return;
     }
-    void playStepVoice(step.speechText);
+    void playStepVoice(step);
   };
 
   // Decide card placement (top vs bottom) so it never covers the highlighted element
@@ -390,7 +498,7 @@ export function SpotlightVoiceGuide({
             />
           )}
 
-          {/* Crisp Spotlight Cutout Ring */}
+          {/* Crisp Spotlight Cutout Ring (Animates smoothly between Category -> Play -> Buy) */}
           {rect && (
             <>
               <motion.div
@@ -401,8 +509,8 @@ export function SpotlightVoiceGuide({
                   width: rect.width,
                   height: rect.height,
                 }}
-                transition={{ type: 'spring', stiffness: 360, damping: 32 }}
-                className="pointer-events-none fixed rounded-[22px] border-2 border-sky-400 shadow-[0_0_0_9999px_rgba(3,9,22,0.82),0_0_28px_rgba(56,189,248,0.45)]"
+                transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+                className="pointer-events-none fixed rounded-[20px] border-2 border-sky-400 shadow-[0_0_0_9999px_rgba(3,9,22,0.82),0_0_28px_rgba(56,189,248,0.5)]"
               />
 
               {/* Allow clicking the highlighted CTA directly on Step 1 */}
@@ -417,7 +525,7 @@ export function SpotlightVoiceGuide({
                     width: rect.width,
                     height: rect.height,
                   }}
-                  className="pointer-events-auto fixed cursor-pointer rounded-[22px] bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="pointer-events-auto fixed cursor-pointer rounded-[20px] bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 />
               )}
             </>
@@ -434,13 +542,20 @@ export function SpotlightVoiceGuide({
               placeCardAtTop ? 'top-4 sm:top-6' : 'bottom-4 sm:bottom-6'
             }`}
           >
-            {/* Header Row: Step Counter + Voice Control + Ruka */}
+            {/* Header Row: Step Counter + Live Cue Indicator + Voice Control + Ruka */}
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center rounded-lg border border-sky-400/30 bg-[#0D2B4E] px-2.5 py-1 text-[11px] font-extrabold tracking-wider text-sky-300 uppercase">
-                MWONGOZO {stepIndex + 1}/{TOUR_STEPS.length}
-              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="inline-flex shrink-0 items-center rounded-lg border border-sky-400/30 bg-[#0D2B4E] px-2.5 py-1 text-[11px] font-extrabold tracking-wider text-sky-300 uppercase">
+                  MWONGOZO {stepIndex + 1}/{TOUR_STEPS.length}
+                </span>
+                {activeCue?.hintLabel && (
+                  <span className="truncate rounded-lg bg-sky-400/15 px-2 py-1 text-[11px] font-bold text-sky-200">
+                    {activeCue.hintLabel}
+                  </span>
+                )}
+              </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 {audioStatus === 'needs-tap' || audioStatus === 'paused' ? (
                   <motion.button
                     whileTap={{ scale: 0.92 }}
