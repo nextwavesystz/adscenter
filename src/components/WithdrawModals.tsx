@@ -171,20 +171,39 @@ export function WithdrawModal({ open, balance, onClose, onRecordAttempt }: Withd
                     <AlertCircle className="size-8" aria-hidden="true" />
                   </div>
                   <h3 className="mt-4 font-display text-lg font-bold text-red-700">
-                    Huwezi kupokea malipo bado!
+                    Jisajili kuweka namba ya malipo!
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                    Hakuna namba yoyote uliyo iweka kwenye mfumo ili kupokea malipo yako. Fungua
-                    account sasa ili muamala wako uingizwe kwenye namba yako na kuepuka kupoteza
-                    pesa zako.
+                    Bado hujaweka namba ya simu ya kupokelea malipo. Fungua account sasa, weka namba
+                    yako ya simu, na chagua moja kati ya package tatu ili kupokea malipo yako:
                   </p>
+
+                  <div className="mt-3.5 grid w-full grid-cols-3 gap-2">
+                    {[
+                      { tier: 'Package 1', price: '20,000/=' },
+                      { tier: 'Package 2', price: '30,000/=' },
+                      { tier: 'Package 3', price: '50,000/=' },
+                    ].map((pkg) => (
+                      <div
+                        key={pkg.tier}
+                        className="rounded-xl border border-[#D5E0F0] bg-[#F4F7FC] px-2 py-2 text-center"
+                      >
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                          {pkg.tier}
+                        </p>
+                        <p className="mt-0.5 font-mono text-xs font-extrabold text-[#155EEF] tabular-nums">
+                          {pkg.price}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
 
                   <motion.a
                     whileTap={{ scale: 0.97 }}
                     href={REGISTER_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#155EEF] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1049C5]"
+                    className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#155EEF] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1049C5]"
                   >
                     <span>Fungua Account Sasa</span>
                     <ArrowUpRight className="size-4" aria-hidden="true" />

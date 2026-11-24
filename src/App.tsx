@@ -428,8 +428,8 @@ export default function App() {
                             Tazama video za wafanyabiashara — ulipwe kulingana na muda uliotazama!
                           </h2>
                           <p className="mt-1 text-xs leading-relaxed text-blue-100/80">
-                            Kila video unayomaliza ni pesa mkononi. Fungua account sasa ili malipo
-                            yako yasipotee.
+                            Jisajili kuweka namba ya simu ya kupokelea malipo na uchague package
+                            (20,000/=, 30,000/=, au 50,000/=) ili uweze kupokea pesa zako.
                           </p>
                         </div>
 

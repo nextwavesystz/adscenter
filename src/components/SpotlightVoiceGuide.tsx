@@ -81,17 +81,17 @@ export const TOUR_STEPS: TourStep[] = [
         hintLabel: 'Bonyeza Toa pesa',
       },
       {
-        atSeconds: 4.1,
+        atSeconds: 8.5,
         selector: '[data-tour="dashboard-payout"]',
-        hintLabel: 'Fungua account sasa',
+        hintLabel: 'Chagua Package & Fungua Account',
       },
     ],
     screen: 'dashboard',
-    title: 'Fungua Account & Toa Pesa',
+    title: 'Jisajili & Toa Pesa',
     description:
-      'Ukishakusanya salio lako, bonyeza Toa pesa au Fungua account sasa ili kusajili namba yako na kupokea malipo yako kwa usalama.',
+      'Bonyeza Toa pesa, kisha jisajili kuweka namba yako ya simu ya kupokelea malipo. Unapofungua account chagua kati ya package tatu: TSh 20,000/=, TSh 30,000/=, au TSh 50,000/=, kisha utaweza kupokea malipo.',
     speechText:
-      'Na ukishakusanya salio lako, bonyeza Toa pesa au Fungua account sasa ili kusajili namba yako na kupokea malipo yako kwa usalama.',
+      'Na ukihitaji kutoa pesa zako, bonyeza Toa pesa kisha jisajili ili uweke namba yako ya simu itakayotumika kupokelea malipo. Unapofungua account, utatakiwa kuchagua kati ya package tatu: package ya kwanza shilingi elfu ishirini, ya pili elfu thelathini, au ya tatu shilingi elfu hamsini. Baada ya kufungua account, utaweza kupokea malipo yako moja kwa moja.',
     audioUrl: '/audio/dashboard-payout.mp3',
   },
 ];
